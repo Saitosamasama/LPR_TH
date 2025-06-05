@@ -22,3 +22,16 @@ https://github.com/ultralytics/ultralytics
 
  
 5.  	Computer specification      https://www.proxpc.com/blogs/system-hardware-requirements-for-yolo-in-2025?utm_source=chatgpt.com
+
+## Database Integration
+
+The application now uses a SQLite database (`vehicle.db`) to store registered
+vehicles and detection logs.  Routes were added to manage this data:
+
+- `POST /register_vehicle` – register a new plate in the database. JSON body
+  should contain `plate` and optional `province`.
+- `GET /vehicles` – list all registered vehicles.
+- `GET /detections` – retrieve detection history from the database.
+
+Detected plates are automatically checked against registered records and
+logged with the result.

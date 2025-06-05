@@ -1,8 +1,16 @@
 # นำเข้าไลบรารีที่จำเป็น
-from flask import Flask, Response, jsonify, render_template 
-import cv2 
-from ultralytics import YOLO 
-from function.helper import get_thai_character, data_province, split_license_plate_and_province 
+from flask import Flask, Response, jsonify, render_template, request
+import cv2
+from ultralytics import YOLO
+from function.helper import get_thai_character, data_province, split_license_plate_and_province
+from function.database import (
+    init_db,
+    register_vehicle,
+    list_vehicles,
+    is_registered,
+    log_detection,
+    list_detections,
+)
 import threading 
 import time 
 import numpy as np 
@@ -13,10 +21,11 @@ import base64
 vehicle_model = YOLO("model/license_plate.pt") 
 plate_model = YOLO("model/data_plate.pt")
 
-class LicensePlateDetector: # คลาสสำหรับจัดการการตรวจจับป้ายทะเบียน
-    def __init__(self): 
-        self.is_running = False 
-        self.video_source = None 
+class LicensePlateDetector:  # คลาสสำหรับจัดการการตรวจจับป้ายทะเบียน
+    def __init__(self, db_conn=None):
+        self.db_conn = db_conn
+        self.is_running = False
+        self.video_source = None
         self.roi_y_start = 0.6 
         self.roi_y_end = 0.75 
         self.last_detection_time = 0
@@ -199,20 +208,43 @@ class LicensePlateDetector: # คลาสสำหรับจัดการ�
 
                             break # หยุดค้นหาเมื่อเจอ entry ที่ตรงกัน
                 
-                if existing_entry: # ถ้ามีการอัปเดต entry ที่มีอยู่
-                    existing_entry["time"] = current_time_str # อัปเดตเวลาของ entry
-                    if snapshot: # ถ้ามีการสร้าง snapshot ใหม่
-                        existing_entry["snapshot"] = snapshot # อัปเดต snapshot
+                if existing_entry:  # ถ้ามีการอัปเดต entry ที่มีอยู่
+                    existing_entry["time"] = current_time_str  # อัปเดตเวลาของ entry
+                    if snapshot:  # ถ้ามีการสร้าง snapshot ใหม่
+                        existing_entry["snapshot"] = snapshot  # อัปเดต snapshot
+
+                    if self.db_conn:
+                        reg = is_registered(self.db_conn, existing_entry["plate"])
+                        existing_entry["registered"] = reg
+                        log_detection(
+                            self.db_conn,
+                            existing_entry["plate"],
+                            existing_entry.get("province"),
+                            existing_entry.get("snapshot"),
+                            reg,
+                        )
 
                     self.detection_log.remove(existing_entry)
                     self.detection_log.append(existing_entry)
                 else: # ถ้าเป็นการตรวจจับใหม่ (ไม่มีใน log หรือนานเกิน 5 วินาที)
 
+                    registered = False
+                    if self.db_conn:
+                        registered = is_registered(self.db_conn, license_plate)
+                        log_detection(
+                            self.db_conn,
+                            license_plate,
+                            province,
+                            snapshot,
+                            registered,
+                        )
+
                     self.detection_log.append({
                         "time": current_time_str,
                         "plate": license_plate,
                         "province": province,
-                        "snapshot": snapshot # เพิ่ม snapshot เข้าไปด้วย
+                        "registered": registered,
+                        "snapshot": snapshot,  # เพิ่ม snapshot เข้าไปด้วย
                     })
                     # จำกัดจำนวนการตรวจจับล่าสุดใน log ไว้ที่ 10 รายการ
                     if len(self.detection_log) > 10:
@@ -253,7 +285,8 @@ class LicensePlateDetector: # คลาสสำหรับจัดการ�
 
 # สร้าง Flask app และ instance ของ LicensePlateDetector
 app = Flask(__name__)
-detector = LicensePlateDetector() 
+db_conn = init_db()
+detector = LicensePlateDetector(db_conn)
 
 def generate_frames(): 
     while True: # วนลูปไม่รู้จบเพื่อส่งเฟรมอย่างต่อเนื่อง
@@ -277,9 +310,43 @@ def video():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/log') 
+@app.route('/log')
 def get_log():
     return jsonify(detector.detection_log) # คืนค่า detection_log ในรูปแบบ JSON
+
+
+@app.route('/register_vehicle', methods=['POST'])
+def add_vehicle():
+    data = request.get_json() or {}
+    plate = data.get('plate')
+    province = data.get('province')
+    if not plate:
+        return jsonify({'error': 'plate required'}), 400
+    register_vehicle(db_conn, plate, province)
+    return jsonify({'status': 'registered'})
+
+
+@app.route('/vehicles')
+def get_vehicles():
+    vehicles = [
+        {'plate': v[0], 'province': v[1]} for v in list_vehicles(db_conn)
+    ]
+    return jsonify(vehicles)
+
+
+@app.route('/detections')
+def get_detections():
+    items = list_detections(db_conn)
+    detections = [
+        {
+            'timestamp': ts,
+            'plate': p,
+            'province': prov,
+            'registered': bool(reg),
+        }
+        for ts, p, prov, reg in items
+    ]
+    return jsonify(detections)
 
 @app.route('/clear_cache', methods=['POST']) 
 def clear_cache():
