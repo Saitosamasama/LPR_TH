@@ -10,7 +10,8 @@ def init_db(db_path=DB_PATH):
         CREATE TABLE IF NOT EXISTS registered_vehicles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             plate TEXT NOT NULL,
-            province TEXT
+            province TEXT,
+            driver_name TEXT
         )
     ''')
     cursor.execute('''
@@ -26,15 +27,18 @@ def init_db(db_path=DB_PATH):
     conn.commit()
     return conn
 
-def register_vehicle(conn, plate, province=None):
+def register_vehicle(conn, plate, province=None, driver_name=None):
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO registered_vehicles (plate, province) VALUES (?, ?)', (plate, province))
+    cursor.execute(
+        'INSERT INTO registered_vehicles (plate, province, driver_name) VALUES (?, ?, ?)',
+        (plate, province, driver_name)
+    )
     conn.commit()
 
 
 def list_vehicles(conn):
     cursor = conn.cursor()
-    cursor.execute('SELECT plate, province FROM registered_vehicles')
+    cursor.execute('SELECT plate, province, driver_name FROM registered_vehicles')
     return cursor.fetchall()
 
 

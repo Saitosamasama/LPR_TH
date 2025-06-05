@@ -28,10 +28,21 @@ https://github.com/ultralytics/ultralytics
 The application now uses a SQLite database (`vehicle.db`) to store registered
 vehicles and detection logs.  Routes were added to manage this data:
 
-- `POST /register_vehicle` – register a new plate in the database. JSON body
-  should contain `plate` and optional `province`.
+ - `POST /register_vehicle` – register a new plate in the database. JSON body
+   should contain `plate`, optional `province`, and optional `driver_name`.
 - `GET /vehicles` – list all registered vehicles.
 - `GET /detections` – retrieve detection history from the database.
 
 Detected plates are automatically checked against registered records and
 logged with the result.
+
+### Populating mock data
+
+To quickly create sample vehicles with driver names run:
+
+```bash
+python scripts/populate_mock_data.py
+```
+
+This will insert 100 random license plates with mock driver names into
+`vehicle.db`.
