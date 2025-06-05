@@ -320,16 +320,22 @@ def add_vehicle():
     data = request.get_json() or {}
     plate = data.get('plate')
     province = data.get('province')
+    driver_name = data.get('driver_name')
     if not plate:
         return jsonify({'error': 'plate required'}), 400
-    register_vehicle(db_conn, plate, province)
+    register_vehicle(db_conn, plate, province, driver_name)
     return jsonify({'status': 'registered'})
 
 
 @app.route('/vehicles')
 def get_vehicles():
     vehicles = [
-        {'plate': v[0], 'province': v[1]} for v in list_vehicles(db_conn)
+        {
+            'plate': v[0],
+            'province': v[1],
+            'driver_name': v[2],
+        }
+        for v in list_vehicles(db_conn)
     ]
     return jsonify(vehicles)
 
