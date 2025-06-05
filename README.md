@@ -4,12 +4,16 @@
 
 ## การติดตั้ง
 
-1. ติดตั้ง **Python 3.10** และติดตั้ง **Anaconda**
+1. ติดตั้ง **Python 3.10** และติดตั้ง **Anaconda** https://www.python.org/downloads/
 2. สร้างสภาพแวดล้อมด้วย Conda
 
 ```bash
 conda create --name ProjectLPR python=3.10
+```
+```bash
 conda create --name ProjectLPR_Train python=3.10
+```
+```bash
 conda activate ProjectLPR
 ```
 
