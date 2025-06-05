@@ -176,10 +176,11 @@ class LicensePlateDetector:  # คลาสสำหรับจัดการ�
         if detected_classes: # ถ้ามีการตรวจพบตัวอักษร/ตัวเลขบนป้ายทะเบียน
             self.last_detection_time = current_time # อัปเดตเวลาล่าสุดที่มีการตรวจจับ
 
-            for item in detected_classes:
-                if item in data_province: 
-                    detected_classes.remove(item) 
-                    detected_classes.append(item) 
+            # Move province codes to the end without modifying the list during
+            # iteration to avoid skipping elements
+            province_codes = [c for c in detected_classes if c in data_province]
+            other_codes = [c for c in detected_classes if c not in data_province]
+            detected_classes = other_codes + province_codes
 
             # รวมตัวอักษร/ตัวเลขที่ตรวจพบเป็นสตริงเดียว
 
