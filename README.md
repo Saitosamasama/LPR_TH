@@ -1,48 +1,63 @@
-Install Python 3.13.3
-Install anaconda
-## สร้าง Env ด้วย Conda
-·         conda create --name ProjectLPR python=3.10
+# LPR_TH
+
+ระบบตรวจจับทะเบียนรถด้วย YOLO และ Flask
+
+## การติดตั้ง
+
+1. ติดตั้ง **Python 3.10** และติดตั้ง **Anaconda**
+2. สร้างสภาพแวดล้อมด้วย Conda
+
+```bash
+conda create --name ProjectLPR python=3.10
 conda create --name ProjectLPR_Train python=3.10
-·         conda activate ProjectLPR
-·         conda deactivate
-·         ^Z
-·         pip list
-·         conda install -c conda-forge ultralytics=8.3.3
-·         conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics=8.3.3
-·         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-·         conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
-·         pip install opencv-contrib-python
-·         pip install shapely
-4.  	Install libraries
-·         pip install flask
-·         pip install opencv-python-headless
-·         pip install ultralytics
-·         pip install numpy
-https://github.com/ultralytics/ultralytics
+conda activate ProjectLPR
+```
 
- 
-5.  	Computer specification      https://www.proxpc.com/blogs/system-hardware-requirements-for-yolo-in-2025?utm_source=chatgpt.com
+3. ติดตั้งไลบรารีที่จำเป็น
 
-## Database Integration
+```bash
+conda install -c conda-forge ultralytics=8.3.3
+conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install opencv-contrib-python shapely
+pip install flask opencv-python-headless ultralytics numpy
+```
 
-The application now uses a SQLite database (`vehicle.db`) to store registered
-vehicles and detection logs.  Routes were added to manage this data:
+4. ตรวจสอบเวอร์ชันไลบรารีที่ติดตั้ง
 
- - `POST /register_vehicle` – register a new plate in the database. JSON body
-   should contain `plate`, optional `province`, and optional `driver_name`.
-- `GET /vehicles` – list all registered vehicles.
-- `GET /detections` – retrieve detection history from the database.
+```bash
+pip list
+```
 
-Detected plates are automatically checked against registered records and
-logged with the result.
+5. ดูสเปกคอมพิวเตอร์ที่แนะนำได้ที่ [YOLO hardware requirements](https://www.proxpc.com/blogs/system-hardware-requirements-for-yolo-in-2025?utm_source=chatgpt.com)
 
-### Populating mock data
+## การใช้งาน
 
-To quickly create sample vehicles with driver names run:
+1. แก้ไขตัวแปร `video_path` ที่ท้ายไฟล์ `LPR_TH/app.py` ให้ชี้ไปยังไฟล์วิดีโอของคุณ
+2. เริ่มต้นฐานข้อมูลและรันแอปพลิเคชัน
+
+```bash
+python LPR_TH/app.py
+```
+
+### เติมข้อมูลตัวอย่าง
+
+เพื่อสร้างข้อมูลทะเบียนรถตัวอย่างลงใน `vehicle.db` ให้รัน
 
 ```bash
 python scripts/populate_mock_data.py
 ```
 
-This will insert 100 random license plates with mock driver names into
-`vehicle.db`.
+### จุดเชื่อมต่อ API
+
+- `POST /register_vehicle` – ลงทะเบียนป้ายทะเบียนใหม่ ต้องระบุ `plate` และสามารถระบุ `province` หรือ `driver_name` ได้
+- `GET /vehicles` – รายการป้ายทะเบียนที่ลงทะเบียนแล้ว
+- `GET /detections` – ประวัติการตรวจจับจากฐานข้อมูล
+
+## การทดสอบ
+
+ติดตั้ง `pytest` แล้วรันคำสั่ง
+
+```bash
+pytest
+```
