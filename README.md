@@ -27,18 +27,23 @@ pip install opencv-contrib-python shapely
 pip install flask opencv-python-headless ultralytics numpy
 ```
 
-4. ตรวจสอบเวอร์ชันไลบรารีที่ติดตั้ง
+4. ไม่ต้องติดตั้งฐานข้อมูลแยก เนื่องจากโปรเจ็กต์ใช้ **SQLite** ซึ่งมาพร้อมกับ Python
+   เมื่อรัน `python LPR_TH/app.py` หรือสคริปต์ในโฟลเดอร์ `scripts` จะมีการสร้างไฟล์
+   `vehicle.db` ให้อัตโนมัติ
+
+
+5. ตรวจสอบเวอร์ชันไลบรารีที่ติดตั้ง
 
 ```bash
 pip list
 ```
 
-5. ดูสเปกคอมพิวเตอร์ที่แนะนำได้ที่ [YOLO hardware requirements](https://www.proxpc.com/blogs/system-hardware-requirements-for-yolo-in-2025?utm_source=chatgpt.com)
+6. ดูสเปกคอมพิวเตอร์ที่แนะนำได้ที่ [YOLO hardware requirements](https://www.proxpc.com/blogs/system-hardware-requirements-for-yolo-in-2025?utm_source=chatgpt.com)
 
 ## การใช้งาน
 
 1. แก้ไขตัวแปร `video_path` ที่ท้ายไฟล์ `LPR_TH/app.py` ให้ชี้ไปยังไฟล์วิดีโอของคุณ
-2. เริ่มต้นฐานข้อมูลและรันแอปพลิเคชัน
+2. เริ่มต้นฐานข้อมูลและรันแอปพลิเคชัน (เมื่อรันครั้งแรกจะสร้างไฟล์ `vehicle.db` ให้อัตโนมัติ)
 
 ```bash
 python LPR_TH/app.py
